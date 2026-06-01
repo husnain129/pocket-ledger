@@ -1,50 +1,72 @@
-# Welcome to your Expo app 👋
+# PocketLedger
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+PocketLedger is an offline-first React Native expense tracker built with Expo Router, SQLite, and Zustand. It is designed for daily use on a phone without depending on a backend or network connection.
 
-## Get started
+## What it does
 
-1. Install dependencies
+- Tracks daily expenses against an active budget period
+- Stores all data locally in SQLite
+- Supports budget setup, income top-ups, expense logging, editing, and deletion
+- Shows dashboard, history, analytics, and settings views
+- Schedules local reminder notifications for daily and weekly check-ins
+- Protects the app with biometric lock on supported devices
+- Exports and restores JSON backups on device
+
+## Tech Stack
+
+- Expo SDK 54
+- Expo Router for file-based navigation
+- expo-sqlite for the local database
+- Zustand for app state and hydration
+- react-native-paper for UI controls and forms
+- Gifted Charts for analytics charts
+- expo-local-authentication for biometric lock
+- expo-notifications for reminders
+
+## Project Structure
+
+- `app/` - routed screens and modal flows
+- `components/` - reusable UI, forms, charts, and bootstrap helpers
+- `db/` - SQLite schema, queries, and snapshot helpers
+- `store/` - global state and CRUD actions
+- `lib/` - notification helpers
+- `hooks/` - theme and color-scheme helpers
+
+## Getting Started
+
+1. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Start the app:
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. Open the app in an iOS simulator, Android emulator, development build, or Expo Go.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Common Scripts
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- `npm run reset-project` - restore the starter layout if you want a clean reset
+- `npx expo start` - launch the app
 
-## Get a fresh project
+## Data Model
 
-When you're ready, run:
+PocketLedger stores its data locally in SQLite. The main tables are:
 
-```bash
-npm run reset-project
-```
+- budget periods
+- income entries
+- categories and subcategories
+- expenses
+- key/value settings
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The store hydrates from SQLite on startup, keeps the active budget period in sync, and exposes the CRUD actions used by the screens and modal routes.
 
-## Learn more
+## Notes
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- The app is intentionally offline-first. There is no remote API.
+- Reminder notifications are local only and are synchronized from the settings screen.
+- Backup exports are JSON files that can be shared or restored on the same device.
