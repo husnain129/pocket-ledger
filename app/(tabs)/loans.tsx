@@ -26,15 +26,12 @@ export default function LoansScreen() {
   const theme = AppTheme[colorScheme];
 
   const loans = useLoanStore((s) => s.loans);
-  const isLoading = useLoanStore((s) => s.isLoading);
   const activeFilter = useLoanStore((s) => s.activeFilter);
   const hydrate = useLoanStore((s) => s.hydrate);
   const setFilter = useLoanStore((s) => s.setFilter);
   const setPaid = useLoanStore((s) => s.setPaid);
   const setActive = useLoanStore((s) => s.setActive);
   const removeLoan = useLoanStore((s) => s.removeLoan);
-  const totalOwedToMe = useLoanStore((s) => s.totalOwedToMe);
-  const totalIOwe = useLoanStore((s) => s.totalIOwe);
 
   useEffect(() => {
     hydrate(db);
@@ -44,6 +41,14 @@ export default function LoansScreen() {
     activeFilter === "all"
       ? loans
       : loans.filter((l) => l.type === activeFilter);
+
+  const totalOwedToMe = loans
+    .filter((l) => l.type === "given" && l.status === "active")
+    .reduce((sum, l) => sum + l.remaining_amount, 0);
+
+  const totalIOwe = loans
+    .filter((l) => l.type === "taken" && l.status === "active")
+    .reduce((sum, l) => sum + l.remaining_amount, 0);
 
   const currency = "PKR";
 
@@ -96,7 +101,7 @@ export default function LoansScreen() {
               You're Owed
             </Text>
             <Text style={[styles.summaryAmount, { color: theme.primary }]}>
-              {formatMoney(totalOwedToMe(), currency)}
+              {formatMoney(totalOwedToMe, currency)}
             </Text>
           </View>
 
@@ -128,7 +133,7 @@ export default function LoansScreen() {
             <Text
               style={[styles.summaryAmount, { color: AppPalette.warning }]}
             >
-              {formatMoney(totalIOwe(), currency)}
+              {formatMoney(totalIOwe, currency)}
             </Text>
           </View>
         </View>
