@@ -87,3 +87,29 @@ export type AppSnapshot = {
   expenses: ExpenseView[];
   incomeEntries: IncomeEntryRow[];
 };
+
+export type LoanType = "given" | "taken";
+export type LoanStatus = "active" | "paid";
+
+export type LoanRow = {
+  id: string;
+  type: LoanType;
+  person_name: string;
+  principal_amount: number;
+  remaining_amount: number;
+  note: string | null;
+  date: string;
+  due_date: string | null;
+  status: LoanStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LoanPaymentRow = {
+  id: string;
+  loan_id: string;
+  amount: number;
+  note: string | null;
+  date: string;
+  created_at: string;
+};

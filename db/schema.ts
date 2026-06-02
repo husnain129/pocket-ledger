@@ -3,7 +3,7 @@ import * as SQLite from "expo-sqlite";
 import { DEFAULT_CATEGORY_SEEDS } from "@/constants/categories";
 
 export const DATABASE_NAME = "pocketledger.db";
-export const DATABASE_VERSION = 1;
+export const DATABASE_VERSION = 2;
 
 type SeedDatabase = Pick<
   SQLite.SQLiteDatabase,
@@ -71,6 +71,30 @@ export async function initializeDatabase(db: SeedDatabase) {
     CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category_id, subcategory_id);
     CREATE INDEX IF NOT EXISTS idx_expenses_filters ON expenses(payment_method, is_recurring, amount);
     CREATE INDEX IF NOT EXISTS idx_settings_key ON settings(key);
+    CREATE TABLE IF NOT EXISTS loans (
+      id TEXT PRIMARY KEY NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('given', 'taken')),
+      person_name TEXT NOT NULL,
+      principal_amount REAL NOT NULL,
+      remaining_amount REAL NOT NULL,
+      note TEXT,
+      date TEXT NOT NULL,
+      due_date TEXT,
+      status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'paid')),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS loan_payments (
+      id TEXT PRIMARY KEY NOT NULL,
+      loan_id TEXT NOT NULL,
+      amount REAL NOT NULL,
+      note TEXT,
+      date TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_loans_type_status ON loans(type, status);
+    CREATE INDEX IF NOT EXISTS idx_loan_payments_loan ON loan_payments(loan_id, date);
   `);
 
   const versionRow = await db.getFirstAsync<{ user_version: number }>(

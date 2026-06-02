@@ -12,6 +12,10 @@ import type {
   ExpenseRow,
   ExpenseView,
   IncomeEntryRow,
+  LoanPaymentRow,
+  LoanRow,
+  LoanStatus,
+  LoanType,
   SettingRow,
 } from "./types";
 
@@ -684,6 +688,173 @@ export function getTemplateBalance(
     "additional_income" in period ? period.additional_income : 0;
   const totalExpenses = "total_expenses" in period ? period.total_expenses : 0;
   return period.total_amount + additionalIncome - totalExpenses;
+}
+
+export type LoanInput = {
+  type: LoanType;
+  personName: string;
+  principalAmount: number;
+  note?: string;
+  date: string;
+  dueDate?: string | null;
+};
+
+export async function createLoan(db: SqliteLike, input: LoanInput) {
+  const id = createId("loan");
+  const now = dayjs().toISOString();
+  await db.runAsync(
+    `INSERT INTO loans (id, type, person_name, principal_amount, remaining_amount, note, date, due_date, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`,
+    id,
+    input.type,
+    input.personName,
+    input.principalAmount,
+    input.principalAmount,
+    input.note ?? null,
+    normalizeDate(input.date),
+    input.dueDate ? normalizeDate(input.dueDate) : null,
+    now,
+    now,
+  );
+  return id;
+}
+
+export async function updateLoan(
+  db: SqliteLike,
+  id: string,
+  input: Partial<LoanInput>,
+) {
+  const now = dayjs().toISOString();
+  const dueDateValue =
+    input.dueDate !== undefined
+      ? input.dueDate
+        ? normalizeDate(input.dueDate)
+        : null
+      : null;
+  await db.runAsync(
+    `UPDATE loans SET
+      person_name = COALESCE(?, person_name),
+      note = ?,
+      date = COALESCE(?, date),
+      due_date = ?,
+      updated_at = ?
+     WHERE id = ?`,
+    input.personName ?? null,
+    input.note ?? null,
+    input.date ? normalizeDate(input.date) : null,
+    dueDateValue,
+    now,
+    id,
+  );
+}
+
+export async function deleteLoan(db: SqliteLike, loanId: string) {
+  await db.runAsync("DELETE FROM loans WHERE id = ?", loanId);
+}
+
+export async function markLoanPaid(db: SqliteLike, loanId: string) {
+  const now = dayjs().toISOString();
+  await db.runAsync(
+    `UPDATE loans SET status = 'paid', remaining_amount = 0, updated_at = ? WHERE id = ?`,
+    now,
+    loanId,
+  );
+}
+
+export async function markLoanActive(db: SqliteLike, loanId: string) {
+  const now = dayjs().toISOString();
+  const loan = await db.getFirstAsync<LoanRow>(
+    "SELECT * FROM loans WHERE id = ?",
+    loanId,
+  );
+  if (!loan) return;
+  const paid = await db.getFirstAsync<{ total: number }>(
+    "SELECT COALESCE(SUM(amount), 0) AS total FROM loan_payments WHERE loan_id = ?",
+    loanId,
+  );
+  const remaining = Math.max(0, loan.principal_amount - (paid?.total ?? 0));
+  await db.runAsync(
+    `UPDATE loans SET status = 'active', remaining_amount = ?, updated_at = ? WHERE id = ?`,
+    remaining,
+    now,
+    loanId,
+  );
+}
+
+export async function recordLoanPayment(
+  db: SqliteLike,
+  loanId: string,
+  amount: number,
+  note?: string,
+  date?: string,
+  markFullyPaid = false,
+) {
+  const id = createId("lpay");
+  const now = dayjs().toISOString();
+  await db.runAsync(
+    `INSERT INTO loan_payments (id, loan_id, amount, note, date, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    id,
+    loanId,
+    amount,
+    note ?? null,
+    date ? normalizeDate(date) : dayjs().format("YYYY-MM-DD"),
+    now,
+  );
+
+  if (markFullyPaid) {
+    await db.runAsync(
+      `UPDATE loans SET remaining_amount = 0, status = 'paid', updated_at = ? WHERE id = ?`,
+      now,
+      loanId,
+    );
+  } else {
+    await db.runAsync(
+      `UPDATE loans SET remaining_amount = MAX(0, remaining_amount - ?), updated_at = ?,
+        status = CASE WHEN MAX(0, remaining_amount - ?) = 0 THEN 'paid' ELSE 'active' END
+       WHERE id = ?`,
+      amount,
+      now,
+      amount,
+      loanId,
+    );
+  }
+
+  return id;
+}
+
+export async function getLoans(
+  db: SqliteLike,
+  filter?: { type?: LoanType; status?: LoanStatus },
+) {
+  const clauses: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (filter?.type) {
+    clauses.push("type = ?");
+    params.push(filter.type);
+  }
+  if (filter?.status) {
+    clauses.push("status = ?");
+    params.push(filter.status);
+  }
+
+  const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
+  return db.getAllAsync<LoanRow>(
+    `SELECT * FROM loans ${where} ORDER BY status ASC, date DESC`,
+    ...params,
+  );
+}
+
+export async function getLoanById(db: SqliteLike, loanId: string) {
+  return db.getFirstAsync<LoanRow>("SELECT * FROM loans WHERE id = ?", loanId);
+}
+
+export async function getLoanPayments(db: SqliteLike, loanId: string) {
+  return db.getAllAsync<LoanPaymentRow>(
+    `SELECT * FROM loan_payments WHERE loan_id = ? ORDER BY date DESC, created_at DESC`,
+    loanId,
+  );
 }
 
 export function isBudgetWarning(balance: number, total: number) {
