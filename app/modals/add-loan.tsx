@@ -23,7 +23,7 @@ import type { LoanType } from "@/db/types";
 
 export default function AddLoanModal() {
   const db = useSQLiteContext();
-  const { loanId } = useLocalSearchParams<{ loanId?: string }>();
+  const { loanId, type: typeParam } = useLocalSearchParams<{ loanId?: string; type?: string }>();
   const colorScheme = useColorScheme() ?? "light";
   const theme = AppTheme[colorScheme];
   const isEdit = !!loanId;
@@ -32,7 +32,7 @@ export default function AddLoanModal() {
   const editLoan = useLoanStore((s) => s.editLoan);
   const getLoanWithPayments = useLoanStore((s) => s.getLoanWithPayments);
 
-  const [type, setType] = useState<LoanType>("given");
+  const [type, setType] = useState<LoanType>(typeParam === "taken" ? "taken" : "given");
   const [personName, setPersonName] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));

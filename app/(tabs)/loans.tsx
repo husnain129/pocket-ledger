@@ -62,7 +62,12 @@ export default function LoansScreen() {
         <Text style={[styles.headerTitle, { color: theme.text }]}>Loans</Text>
         <TouchableOpacity
           style={[styles.addBtn, { backgroundColor: theme.primary }]}
-          onPress={() => router.push("/modals/add-loan" as never)}
+          onPress={() =>
+            router.push({
+              pathname: "/modals/add-loan" as never,
+              params: activeFilter !== "all" ? { type: activeFilter } : {},
+            })
+          }
           activeOpacity={0.8}
         >
           <MaterialCommunityIcons name="plus" size={20} color="#fff" />
@@ -194,7 +199,12 @@ export default function LoansScreen() {
             </Text>
             <Pressable
               style={[styles.emptyAction, { backgroundColor: theme.primary }]}
-              onPress={() => router.push("/modals/add-loan" as never)}
+              onPress={() =>
+                router.push({
+                  pathname: "/modals/add-loan" as never,
+                  params: activeFilter !== "all" ? { type: activeFilter } : {},
+                })
+              }
             >
               <Text style={styles.emptyActionLabel}>Add Loan</Text>
             </Pressable>
