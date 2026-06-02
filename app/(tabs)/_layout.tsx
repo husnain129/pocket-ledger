@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { router, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -44,25 +44,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="add-expense"
-        options={{
-          title: "Add Expense",
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="plus-circle"
-              size={24}
-              color={color}
-            />
-          ),
-        }}
-        listeners={{
-          tabPress: (event) => {
-            event.preventDefault();
-            router.push("/modals/add-expense");
-          },
-        }}
-      />
+      <Tabs.Screen name="add-expense" options={{ href: null }} />
       <Tabs.Screen
         name="history"
         options={{
