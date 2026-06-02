@@ -1,3 +1,4 @@
+import * as SplashScreen from "expo-splash-screen";
 import { useSQLiteContext } from "expo-sqlite";
 import { useEffect } from "react";
 
@@ -18,6 +19,12 @@ export function AppBootstrap() {
       console.warn("Failed to hydrate PocketLedger", error);
     });
   }, [db, hydrate]);
+
+  useEffect(() => {
+    if (isReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [isReady]);
 
   useEffect(() => {
     if (!isReady) {
