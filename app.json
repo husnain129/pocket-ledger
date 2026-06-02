@@ -45,6 +45,7 @@
         }
       ],
       "expo-sqlite",
+      "expo-updates",
       [
         "expo-notifications",
         {
@@ -67,6 +68,12 @@
         }
       ]
     ],
+    "updates": {
+      "url": "https://u.expo.dev/c328d118-fc90-4d4e-a9cf-92c9dfb7023b"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
