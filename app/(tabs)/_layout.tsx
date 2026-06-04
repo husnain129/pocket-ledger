@@ -44,11 +44,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="loans"
         options={{
-          title: "Wallet",
+          title: "Loans",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="clock-time-four-outline" size={24} color={color} />
+            <MaterialCommunityIcons name="handshake" size={24} color={color} />
           ),
         }}
       />
@@ -88,8 +88,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="loans" options={{ href: null }} />
-      <Tabs.Screen name="explore" options={{ href: null }} />
+      <Tabs.Screen name="history" options={{ href: null }} />
     </Tabs>
   );
 }
