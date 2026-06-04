@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { AppTheme, Layout } from "@/constants/theme";
+import { AppTheme } from "@/constants/theme";
 import { formatMoney } from "@/db/queries";
 import type { ExpenseView } from "@/db/types";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -14,6 +14,24 @@ type Props = {
   selected?: boolean;
 };
 
+function formatTime12h(time: string): string {
+  const parts = time.split(":");
+  if (parts.length < 2) return time;
+  const hours = parseInt(parts[0], 10);
+  const minutes = parts[1];
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHour = hours % 12 === 0 ? 12 : hours % 12;
+  return `${displayHour}:${minutes} ${period}`;
+}
+
+function formatDateShort(dateStr: string): string {
+  const parts = dateStr.split("-");
+  if (parts.length < 3) return dateStr;
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const month = months[parseInt(parts[1], 10) - 1] ?? parts[1];
+  return `${parseInt(parts[2], 10)} ${month}`;
+}
+
 export function TransactionRow({
   expense,
   currency,
@@ -24,10 +42,12 @@ export function TransactionRow({
   const colorScheme = useColorScheme() ?? "light";
   const theme = AppTheme[colorScheme];
   const color =
-    expense.subcategory_color ?? expense.category_color ?? theme.primary;
+    expense.subcategory_color ?? expense.category_color ?? theme.secondary;
   const icon = expense.subcategory_icon ?? expense.category_icon ?? "cash";
   const title =
     expense.subcategory_name ?? expense.category_name ?? "Uncategorized";
+  const timeLabel = formatTime12h(expense.time);
+  const dateLabel = formatDateShort(expense.date);
 
   return (
     <Pressable
@@ -37,7 +57,6 @@ export function TransactionRow({
         styles.container,
         {
           backgroundColor: selected ? theme.primarySoft : theme.surface,
-          borderColor: selected ? theme.primary : theme.border,
         },
       ]}
     >
@@ -49,35 +68,26 @@ export function TransactionRow({
         />
       </View>
       <View style={styles.textColumn}>
-        <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
-            {title}
-          </Text>
-          {expense.is_recurring ? (
-            <Text style={[styles.badge, { color: theme.primary }]}>
-              Recurring
-            </Text>
-          ) : null}
-        </View>
+        <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+          {title}
+        </Text>
         <Text
           style={[styles.subtitle, { color: theme.textMuted }]}
           numberOfLines={1}
         >
-          {expense.note || expense.payment_method} • {expense.date}{" "}
-          {expense.time}
+          {timeLabel} · {dateLabel}
         </Text>
       </View>
       <View style={styles.amountColumn}>
-        <Text style={[styles.amount, { color: theme.text }]}>
-          {formatMoney(expense.amount, currency)}
+        <Text style={[styles.amount, { color: theme.secondary }]}>
+          -{formatMoney(expense.amount, currency)}
         </Text>
-        {expense.receipt_uri ? (
-          <MaterialCommunityIcons
-            name="receipt"
-            size={16}
-            color={theme.primary}
-          />
-        ) : null}
+        <Text
+          style={[styles.paymentMethod, { color: theme.textMuted }]}
+          numberOfLines={1}
+        >
+          {expense.payment_method}
+        </Text>
       </View>
     </Pressable>
   );
@@ -89,8 +99,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     padding: 14,
-    borderRadius: Layout.radiusSmall,
-    borderWidth: 1,
+    borderRadius: 16,
+    shadowColor: "rgba(0,0,0,0.08)",
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 1,
+    elevation: 3,
   },
   iconWrap: {
     width: 42,
@@ -103,30 +117,22 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
   title: {
-    flex: 1,
     fontSize: 15,
-    fontWeight: "800",
+    fontWeight: "700",
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12,
   },
   amountColumn: {
     alignItems: "flex-end",
-    gap: 4,
+    gap: 3,
   },
   amount: {
     fontSize: 15,
     fontWeight: "800",
   },
-  badge: {
+  paymentMethod: {
     fontSize: 11,
-    fontWeight: "800",
-    textTransform: "uppercase",
   },
 });

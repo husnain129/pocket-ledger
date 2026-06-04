@@ -6,6 +6,7 @@ import {
   bulkDeleteExpenses,
   createBudgetPeriod,
   deleteExpense,
+  deleteIncomeEntry,
   formatMoney,
   getActiveBudgetPeriod,
   getBudgetPeriods,
@@ -59,6 +60,7 @@ type BudgetStore = {
     db: SqliteDb,
     input: Parameters<typeof addIncomeEntry>[1],
   ) => Promise<string>;
+  removeIncomeEntry: (db: SqliteDb, id: string) => Promise<void>;
   addExpense: (db: SqliteDb, input: ExpenseInput) => Promise<string>;
   updateExpense: (db: SqliteDb, input: ExpenseInput) => Promise<string>;
   removeExpense: (db: SqliteDb, expenseId: string) => Promise<void>;
@@ -180,6 +182,10 @@ export const useBudgetStore = create<BudgetStore>((set, get) => ({
     await get().refresh(db);
     return id;
   },
+  removeIncomeEntry: async (db, id) => {
+    await deleteIncomeEntry(db, id);
+    await get().refresh(db);
+  },
   addExpense: async (db, input) => {
     const id = await saveExpense(db, input);
     await get().refresh(db);
@@ -229,7 +235,7 @@ export const useBudgetStore = create<BudgetStore>((set, get) => ({
     );
   },
   currencyLabel: () =>
-    get().activeBudgetPeriod?.currency ?? get().settings.currency ?? "USD",
+    get().settings.currency ?? get().activeBudgetPeriod?.currency ?? "PKR",
 }));
 
 export function useBudgetPeriods() {

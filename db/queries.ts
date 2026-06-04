@@ -62,6 +62,9 @@ export function createId(prefix: string) {
 }
 
 export function formatMoney(amount: number, currency: string) {
+  if (currency === "PKR") {
+    return "Rs " + Math.round(amount).toLocaleString("en-US");
+  }
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -262,6 +265,10 @@ export async function addIncomeEntry(db: SqliteLike, input: IncomeEntryInput) {
     dayjs().toISOString(),
   );
   return id;
+}
+
+export async function deleteIncomeEntry(db: SqliteLike, id: string) {
+  await db.runAsync("DELETE FROM income_entries WHERE id = ?", id);
 }
 
 export async function saveExpense(db: SqliteLike, input: ExpenseInput) {

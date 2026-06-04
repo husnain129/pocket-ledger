@@ -1,23 +1,17 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import dayjs from "dayjs";
 import { router } from "expo-router";
-import { useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { FAB, ProgressBar } from "react-native-paper";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { FAB } from "react-native-paper";
 
 import { TransactionRow } from "@/components/transaction-row";
 import { EmptyState } from "@/components/ui/empty-state";
-import { MetricCard } from "@/components/ui/metric-card";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonStack } from "@/components/ui/skeleton";
 import { AppTheme, Layout } from "@/constants/theme";
 import { formatBalanceLabel } from "@/store/useBudgetStore";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useBudgetStore } from "@/store/useBudgetStore";
-import {
-  getBudgetUsedPercent,
-  getSpendWarningLevel,
-  getThisWeekSpend,
-  getTodaySpend,
-} from "@/utils/analytics";
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? "light";
@@ -26,37 +20,16 @@ export default function HomeScreen() {
     (state) => state.activeBudgetPeriod,
   );
   const recentExpenses = useBudgetStore((state) => state.recentExpenses);
-  const expenses = useBudgetStore((state) => state.expenses);
   const budgetPeriods = useBudgetStore((state) => state.budgetPeriods);
   const isHydrating = useBudgetStore((state) => state.isHydrating);
   const isReady = useBudgetStore((state) => state.isReady);
 
-  const currency = "PKR";
-  const totalBudget = activeBudgetPeriod
-    ? activeBudgetPeriod.total_amount + activeBudgetPeriod.additional_income
-    : 0;
-  const spent = activeBudgetPeriod?.total_expenses ?? 0;
+  const currency = useBudgetStore((state) => state.currencyLabel());
   const balance = activeBudgetPeriod?.current_balance ?? 0;
-  const usedPercent = getBudgetUsedPercent(totalBudget, spent);
-  const warningLevel = getSpendWarningLevel(usedPercent);
-  const todaySpend = getTodaySpend(expenses);
-  const weekSpend = getThisWeekSpend(expenses);
 
-  const quickStats = useMemo(
-    () => [
-      {
-        label: "Today",
-        value: formatBalanceLabel(todaySpend, currency),
-        icon: "calendar-today" as const,
-      },
-      {
-        label: "This week",
-        value: formatBalanceLabel(weekSpend, currency),
-        icon: "chart-bar" as const,
-      },
-    ],
-    [currency, todaySpend, weekSpend],
-  );
+  const today = dayjs();
+  const dayLabel = today.format("dddd");
+  const dateLabel = today.format("D MMMM YYYY");
 
   const latestExpenses = recentExpenses.slice(0, 10);
 
@@ -71,17 +44,21 @@ export default function HomeScreen() {
   if (!activeBudgetPeriod) {
     return (
       <Screen>
-        <View style={styles.hero}>
-          <Text style={[styles.kicker, { color: theme.secondary }]}>
-            PocketLedger
-          </Text>
-          <Text style={[styles.title, { color: theme.text }]}>
-            Start with a budget period
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.textMuted }]}>
-            Create your first budget period to start tracking expenses and
-            watching your balance update in real time.
-          </Text>
+        <View style={styles.topHeader}>
+          <View>
+            <Text style={[styles.dayText, { color: theme.textMuted }]}>
+              {dayLabel}
+            </Text>
+            <Text style={[styles.dateText, { color: theme.text }]}>
+              {dateLabel}
+            </Text>
+          </View>
+          <Pressable
+            style={[styles.bellButton, { backgroundColor: theme.surface }]}
+            onPress={() => router.push("/(tabs)/loans")}
+          >
+            <MaterialCommunityIcons name="handshake" size={20} color={theme.text} />
+          </Pressable>
         </View>
 
         <EmptyState
@@ -92,29 +69,10 @@ export default function HomeScreen() {
           onActionPress={() => router.push("/modals/add-income?mode=budget")}
         />
 
-        <View style={styles.periodList}>
-          {budgetPeriods.map((period) => (
-            <Pressable
-              key={period.id}
-              style={[
-                styles.periodCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-              ]}
-              onPress={() => router.push("/modals/add-income?mode=budget")}
-            >
-              <Text style={[styles.periodTitle, { color: theme.text }]}>
-                {period.label}
-              </Text>
-              <Text style={[styles.periodMeta, { color: theme.textMuted }]}>
-                {period.start_date} to {period.end_date ?? "open"}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
         <FAB
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: theme.primary }]}
           icon="plus"
+          color="#ffffff"
           label="Create budget"
           onPress={() => router.push("/modals/add-income?mode=budget")}
         />
@@ -124,111 +82,69 @@ export default function HomeScreen() {
 
   return (
     <Screen>
-      <View style={styles.hero}>
-        <Text style={[styles.kicker, { color: theme.secondary }]}>
-          {activeBudgetPeriod.label}
-        </Text>
-        <Text style={[styles.title, { color: theme.text }]}>
-          Remaining balance
-        </Text>
-        <Text style={[styles.balance, { color: theme.text }]}>
-          {formatBalanceLabel(balance, currency)}
-        </Text>
-        <Text style={[styles.subtitle, { color: theme.textMuted }]}>
-          Started {activeBudgetPeriod.start_date} •{" "}
-          {formatBalanceLabel(totalBudget, currency)} total budget
-        </Text>
-      </View>
-
-      <View style={styles.progressWrap}>
-        <View style={styles.progressLabelRow}>
-          <Text style={[styles.progressLabel, { color: theme.textMuted }]}>
-            Budget used
+      {/* Header */}
+      <View style={styles.topHeader}>
+        <View>
+          <Text style={[styles.dayText, { color: theme.textMuted }]}>
+            {dayLabel}
           </Text>
-          <Text
-            style={[
-              styles.progressLabel,
-              {
-                color:
-                  warningLevel === "danger"
-                    ? theme.danger
-                    : warningLevel === "warning"
-                      ? theme.warning
-                      : theme.primary,
-              },
-            ]}
-          >
-            {usedPercent.toFixed(0)}%
+          <Text style={[styles.dateText, { color: theme.text }]}>
+            {dateLabel}
           </Text>
         </View>
-        <ProgressBar
-          progress={Math.min(1, usedPercent / 100)}
-          color={
-            warningLevel === "danger"
-              ? theme.danger
-              : warningLevel === "warning"
-                ? theme.warning
-                : theme.primary
-          }
-          style={styles.progressBar}
-        />
+        <Pressable
+          style={[styles.bellButton, { backgroundColor: theme.surface }]}
+          onPress={() => router.push("/(tabs)/loans")}
+        >
+          <MaterialCommunityIcons name="handshake" size={20} color={theme.text} />
+        </Pressable>
       </View>
 
-      <View style={styles.metricsRow}>
-        {quickStats.map((metric) => (
-          <MetricCard
-            key={metric.label}
-            label={metric.label}
-            value={metric.value}
-            icon={metric.icon}
-          />
-        ))}
-      </View>
-
-      <View
-        style={[
-          styles.warningCard,
-          {
-            backgroundColor:
-              warningLevel === "danger"
-                ? `${theme.danger}15`
-                : warningLevel === "warning"
-                  ? `${theme.warning}18`
-                  : theme.primarySoft,
-            borderColor:
-              warningLevel === "danger"
-                ? theme.danger
-                : warningLevel === "warning"
-                  ? theme.warning
-                  : theme.border,
-          },
-        ]}
-      >
-        <Text style={[styles.warningTitle, { color: theme.text }]}>
-          {warningLevel === "danger"
-            ? "Spending is above 90% of your budget."
-            : warningLevel === "warning"
-              ? "Spending is above 75% of your budget."
-              : "Spending is in a healthy range."}
+      {/* Dark balance card */}
+      <View style={[styles.balanceCard, { backgroundColor: colorScheme === "dark" ? "#252540" : "#1c1c2e" }]}>
+        <View style={styles.balanceCardTop}>
+          <Text style={styles.balanceLabelText}>Total Balance</Text>
+          <Pressable
+            style={styles.addFundsBtn}
+            onPress={() => router.push("/modals/add-income")}
+          >
+            <MaterialCommunityIcons name="plus" size={14} color="#1c1c2e" />
+            <Text style={styles.addFundsBtnText}>Add Funds</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.balanceAmount}>
+          {formatBalanceLabel(balance, currency)}
         </Text>
+        <View style={styles.balanceCardBottom}>
+          <Text style={styles.balanceCardInfo}>
+            {activeBudgetPeriod.label}
+          </Text>
+          <MaterialCommunityIcons
+            name="credit-card-outline"
+            size={20}
+            color="#e53935"
+          />
+        </View>
       </View>
 
+      {/* Section header */}
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>
-          Recent transactions
+          Recent Transactions
         </Text>
         <Pressable onPress={() => router.push("/(tabs)/history")}>
-          <Text style={[styles.sectionAction, { color: theme.primary }]}>
+          <Text style={[styles.sectionAction, { color: theme.secondary }]}>
             View all
           </Text>
         </Pressable>
       </View>
 
+      {/* Transaction list */}
       {latestExpenses.length === 0 ? (
         <EmptyState
           icon="cash-remove"
           title="No expenses yet"
-          description="Tap Add Expense to log your first transaction and start tracking your balance."
+          description="Tap the + button to log your first transaction."
           actionLabel="Add expense"
           onActionPress={() => router.push("/modals/add-expense")}
         />
@@ -247,98 +163,92 @@ export default function HomeScreen() {
         </View>
       )}
 
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>
-          Budget history
-        </Text>
-      </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.periodList}
-      >
-        {budgetPeriods.map((period) => (
-          <Pressable
-            key={period.id}
-            style={[
-              styles.periodCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-            ]}
-            onPress={() => router.push("/(tabs)/history")}
-          >
-            <Text style={[styles.periodTitle, { color: theme.text }]}>
-              {period.label}
-            </Text>
-            <Text style={[styles.periodMeta, { color: theme.textMuted }]}>
-              {formatBalanceLabel(period.current_balance, period.currency)}{" "}
-              remaining
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      <FAB
-        style={styles.fab}
-        icon="plus"
-        onPress={() => router.push("/modals/add-expense")}
-      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: {
-    gap: 8,
-  },
-  kicker: {
-    fontSize: 12,
-    fontWeight: "800",
-    textTransform: "uppercase",
-    letterSpacing: 1.2,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-  },
-  balance: {
-    fontSize: 42,
-    fontWeight: "900",
-    letterSpacing: -1.2,
-  },
-  subtitle: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  progressWrap: {
-    gap: 8,
-  },
-  progressLabelRow: {
+  topHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
   },
-  progressLabel: {
+  dayText: {
     fontSize: 13,
+    fontWeight: "500",
+  },
+  dateText: {
+    fontSize: 18,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+  bellButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "rgba(0,0,0,0.08)",
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    shadowOpacity: 1,
+    elevation: 2,
+  },
+  balanceCard: {
+    borderRadius: 20,
+    padding: 20,
+    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+  balanceCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  balanceLabelText: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  addFundsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  addFundsBtnText: {
+    color: "#1c1c2e",
+    fontSize: 12,
     fontWeight: "700",
   },
-  progressBar: {
-    borderRadius: 999,
-    height: 10,
+  balanceDotsText: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 18,
+    letterSpacing: 2,
   },
-  metricsRow: {
+  balanceAmount: {
+    color: "#ffffff",
+    fontSize: 36,
+    fontWeight: "900",
+    letterSpacing: -1,
+    marginVertical: 4,
+  },
+  balanceCardBottom: {
     flexDirection: "row",
-    gap: 10,
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  warningCard: {
-    borderRadius: Layout.radius,
-    borderWidth: 1,
-    padding: 16,
-    gap: 4,
-  },
-  warningTitle: {
-    fontSize: 15,
-    fontWeight: "800",
+  balanceCardInfo: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 13,
+    fontWeight: "500",
   },
   sectionHeader: {
     flexDirection: "row",
@@ -351,29 +261,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   sectionAction: {
-    fontWeight: "800",
+    fontSize: 14,
+    fontWeight: "700",
   },
   list: {
     gap: 10,
-  },
-  periodList: {
-    gap: 10,
-    paddingVertical: 4,
-  },
-  periodCard: {
-    minWidth: 160,
-    borderRadius: Layout.radiusSmall,
-    borderWidth: 1,
-    padding: 14,
-    gap: 6,
-  },
-  periodTitle: {
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  periodMeta: {
-    fontSize: 12,
-    lineHeight: 16,
   },
   fab: {
     position: "absolute",

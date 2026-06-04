@@ -40,7 +40,6 @@ export default function AnalyticsScreen() {
   const activeBudgetPeriod = useBudgetStore(
     (state) => state.activeBudgetPeriod,
   );
-  const settings = useBudgetStore((state) => state.settings);
   const [rangePreset, setRangePreset] = useState<RangePreset>("month");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | "all">(
     "all",
@@ -50,7 +49,7 @@ export default function AnalyticsScreen() {
   );
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
 
-  const currency = activeBudgetPeriod?.currency ?? settings.currency ?? "USD";
+  const currency = useBudgetStore((state) => state.currencyLabel());
 
   const filteredExpenses = useMemo(() => {
     const periodFiltered = expenses.filter((expense) => {
@@ -123,7 +122,7 @@ export default function AnalyticsScreen() {
 
     const canShare = await shareAsync(file.uri, {
       mimeType: "text/csv",
-      dialogTitle: "Share PocketLedger CSV report",
+      dialogTitle: "Share Expense Manager CSV report",
     }).catch(() => null);
     if (canShare === undefined) {
       return;
@@ -145,7 +144,7 @@ export default function AnalyticsScreen() {
           </style>
         </head>
         <body>
-          <h1>PocketLedger report</h1>
+          <h1>Expense Manager report</h1>
           <p class="muted">Total spent: ${formatMoney(totalSpent, currency)} • Used ${usedPercent.toFixed(0)}%</p>
           <table>
             <thead>
@@ -174,7 +173,7 @@ export default function AnalyticsScreen() {
     await shareAsync(uri, {
       UTI: ".pdf",
       mimeType: "application/pdf",
-      dialogTitle: "Share PocketLedger PDF report",
+      dialogTitle: "Share Expense Manager PDF report",
     });
   }
 

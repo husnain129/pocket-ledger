@@ -16,6 +16,7 @@ export default function AddExpenseModal() {
   );
   const categories = useBudgetStore((state) => state.categories);
   const expenses = useBudgetStore((state) => state.expenses);
+  const currency = useBudgetStore((state) => state.currencyLabel());
   const addExpense = useBudgetStore((state) => state.addExpense);
   const updateExpense = useBudgetStore((state) => state.updateExpense);
   const removeExpense = useBudgetStore((state) => state.removeExpense);
@@ -44,7 +45,7 @@ export default function AddExpenseModal() {
         <ExpenseForm
           categories={categories}
           budgetLabel={activeBudgetPeriod.label}
-          currency={activeBudgetPeriod.currency}
+          currency={currency}
           initialValues={expense ?? undefined}
           submitLabel={expense ? "Update expense" : "Save expense"}
           onSubmit={async (values) => {

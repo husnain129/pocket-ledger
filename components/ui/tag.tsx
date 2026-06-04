@@ -21,15 +21,15 @@ export function Tag({ label, selected = false, onPress, color }: Props) {
       style={[
         styles.tag,
         {
-          backgroundColor: selected ? theme.primary : theme.surfaceAlt,
-          borderColor: selected ? theme.primary : theme.border,
+          backgroundColor: selected ? theme.text : theme.surfaceAlt,
+          borderColor: selected ? theme.text : theme.border,
         },
       ]}
     >
       <Text
         style={[
           styles.label,
-          { color: selected ? "#fff" : (color ?? theme.textMuted) },
+          { color: selected ? theme.background : (color ?? theme.textMuted) },
         ]}
       >
         {label}
