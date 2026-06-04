@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "PocketLedger",
+    "name": "Expense Manager",
     "slug": "expense-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -57,14 +57,14 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow PocketLedger to use Face ID to unlock your finances."
+          "faceIDPermission": "Allow Expense Manager to use Face ID to unlock your finances."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow PocketLedger to attach receipt photos.",
-          "cameraPermission": "Allow PocketLedger to capture receipt photos.",
+          "photosPermission": "Allow Expense Manager to attach receipt photos.",
+          "cameraPermission": "Allow Expense Manager to capture receipt photos.",
           "microphonePermission": false
         }
       ]

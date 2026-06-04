@@ -2,7 +2,7 @@ import { File, Paths } from "expo-file-system";
 import * as LocalAuthentication from "expo-local-authentication";
 import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
-import { Alert, Platform, StyleSheet, View } from "react-native";
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import {
   Button,
   SegmentedButtons,
@@ -14,6 +14,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { Screen } from "@/components/ui/screen";
 import { Tag } from "@/components/ui/tag";
+import { CURRENCIES } from "@/constants/currencies";
 import { AppTheme, Layout } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useBudgetStore } from "@/store/useBudgetStore";
@@ -47,7 +48,7 @@ export default function SettingsScreen() {
       }
 
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: "Enable app lock for PocketLedger",
+        promptMessage: "Enable app lock for Expense Manager",
       });
       if (!result.success) {
         return;
@@ -74,7 +75,7 @@ export default function SettingsScreen() {
       await import("expo-sharing").then(({ shareAsync }) =>
         shareAsync(file.uri, {
           mimeType: "application/json",
-          dialogTitle: "Share PocketLedger backup",
+          dialogTitle: "Share Expense Manager backup",
         }),
       );
     } finally {
@@ -154,6 +155,56 @@ export default function SettingsScreen() {
             { value: "system", label: "System" },
           ]}
         />
+      </View>
+
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: theme.surface, borderColor: theme.border },
+        ]}
+      >
+        <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+          Currency
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.currencyRow}
+        >
+          {CURRENCIES.map((c) => {
+            const isSelected = (dbSettings.currency ?? "PKR") === c.code;
+            return (
+              <Pressable
+                key={c.code}
+                onPress={() => changeSetting("currency", c.code)}
+                style={[
+                  styles.currencyChip,
+                  {
+                    backgroundColor: isSelected ? theme.text : theme.surfaceAlt,
+                    borderColor: isSelected ? theme.text : theme.border,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.currencyChipSymbol,
+                    { color: isSelected ? theme.background : theme.text },
+                  ]}
+                >
+                  {c.symbol}
+                </Text>
+                <Text
+                  style={[
+                    styles.currencyChipCode,
+                    { color: isSelected ? theme.background : theme.textMuted },
+                  ]}
+                >
+                  {c.code}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
 
       <View
@@ -364,5 +415,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
+  },
+  currencyRow: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  currencyChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  currencyChipSymbol: {
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  currencyChipCode: {
+    fontSize: 12,
+    fontWeight: "600",
   },
 });

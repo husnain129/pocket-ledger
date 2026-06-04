@@ -18,6 +18,7 @@ export default function AddIncomeModal() {
     (state) => state.createBudgetPeriod,
   );
   const addIncomeEntry = useBudgetStore((state) => state.addIncomeEntry);
+  const currency = useBudgetStore((state) => state.currencyLabel());
 
   const showBudgetSetup = params.mode === "budget" || !activeBudgetPeriod;
 
@@ -26,7 +27,7 @@ export default function AddIncomeModal() {
       <View style={styles.container}>
         {showBudgetSetup ? (
           <BudgetForm
-            currencies={["USD", "EUR", "GBP", "CAD", "AUD", "JPY"]}
+            currencies={["PKR", "USD", "EUR", "GBP", "AED", "SAR", "INR", "CAD", "AUD", "JPY"]}
             initialValues={
               activeBudgetPeriod
                 ? {
@@ -65,6 +66,7 @@ export default function AddIncomeModal() {
               amount: 0,
               date: new Date().toISOString().slice(0, 10),
             }}
+            currency={currency}
             submitLabel="Add funds"
             onSubmit={async (values) => {
               await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

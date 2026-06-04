@@ -18,6 +18,7 @@ import { AppPalette, AppTheme, Layout } from "@/constants/theme";
 import { formatMoney } from "@/db/queries";
 import type { LoanRow } from "@/db/types";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useBudgetStore } from "@/store/useBudgetStore";
 import { useLoanStore } from "@/store/useLoanStore";
 
 export default function LoansScreen() {
@@ -50,7 +51,7 @@ export default function LoansScreen() {
     .filter((l) => l.type === "taken" && l.status === "active")
     .reduce((sum, l) => sum + l.remaining_amount, 0);
 
-  const currency = "PKR";
+  const currency = useBudgetStore((state) => state.currencyLabel());
 
   return (
     <SafeAreaView
@@ -61,7 +62,7 @@ export default function LoansScreen() {
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Loans</Text>
         <TouchableOpacity
-          style={[styles.addBtn, { backgroundColor: theme.primary }]}
+          style={[styles.addBtn, { backgroundColor: theme.text }]}
           onPress={() =>
             router.push({
               pathname: "/modals/add-loan" as never,
@@ -70,7 +71,7 @@ export default function LoansScreen() {
           }
           activeOpacity={0.8}
         >
-          <MaterialCommunityIcons name="plus" size={20} color="#fff" />
+          <MaterialCommunityIcons name="plus" size={20} color={theme.background} />
         </TouchableOpacity>
       </View>
 
@@ -93,19 +94,19 @@ export default function LoansScreen() {
             <View
               style={[
                 styles.summaryIcon,
-                { backgroundColor: theme.primarySoft },
+                { backgroundColor: `${AppPalette.teal}22` },
               ]}
             >
               <MaterialCommunityIcons
                 name="arrow-down-circle"
                 size={20}
-                color={theme.primary}
+                color={AppPalette.teal}
               />
             </View>
             <Text style={[styles.summaryLabel, { color: theme.textMuted }]}>
               You're Owed
             </Text>
-            <Text style={[styles.summaryAmount, { color: theme.primary }]}>
+            <Text style={[styles.summaryAmount, { color: AppPalette.teal }]}>
               {formatMoney(totalOwedToMe, currency)}
             </Text>
           </View>
@@ -152,7 +153,7 @@ export default function LoansScreen() {
               style={[
                 styles.filterTab,
                 activeFilter === f && {
-                  backgroundColor: theme.primary,
+                  backgroundColor: theme.text,
                 },
               ]}
             >
@@ -160,8 +161,7 @@ export default function LoansScreen() {
                 style={[
                   styles.filterLabel,
                   {
-                    color:
-                      activeFilter === f ? "#fff" : theme.textMuted,
+                    color: activeFilter === f ? theme.background : theme.textMuted,
                   },
                 ]}
               >
@@ -182,13 +182,13 @@ export default function LoansScreen() {
             <View
               style={[
                 styles.emptyIcon,
-                { backgroundColor: theme.primarySoft },
+                { backgroundColor: theme.surfaceAlt },
               ]}
             >
               <MaterialCommunityIcons
                 name="handshake"
                 size={32}
-                color={theme.primary}
+                color={theme.textMuted}
               />
             </View>
             <Text style={[styles.emptyTitle, { color: theme.text }]}>
@@ -198,7 +198,7 @@ export default function LoansScreen() {
               Track money you've lent or borrowed. Tap + to add a loan.
             </Text>
             <Pressable
-              style={[styles.emptyAction, { backgroundColor: theme.primary }]}
+              style={[styles.emptyAction, { backgroundColor: theme.text }]}
               onPress={() =>
                 router.push({
                   pathname: "/modals/add-loan" as never,
@@ -206,7 +206,7 @@ export default function LoansScreen() {
                 })
               }
             >
-              <Text style={styles.emptyActionLabel}>Add Loan</Text>
+              <Text style={[styles.emptyActionLabel, { color: theme.background }]}>Add Loan</Text>
             </Pressable>
           </View>
         ) : (
@@ -372,14 +372,14 @@ function LoanCard({
 
             {isPaid ? (
               <View
-                style={[styles.paidBadge, { backgroundColor: theme.primarySoft }]}
+                style={[styles.paidBadge, { backgroundColor: `${theme.success}22` }]}
               >
                 <MaterialCommunityIcons
                   name="check-circle"
                   size={11}
-                  color={theme.primary}
+                  color={theme.success}
                 />
-                <Text style={[styles.paidText, { color: theme.primary }]}>
+                <Text style={[styles.paidText, { color: theme.success }]}>
                   Paid
                 </Text>
               </View>
@@ -556,7 +556,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   emptyActionLabel: {
-    color: "#fff",
     fontWeight: "800",
     fontSize: 14,
   },
