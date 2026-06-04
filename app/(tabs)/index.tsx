@@ -54,10 +54,10 @@ export default function HomeScreen() {
             </Text>
           </View>
           <Pressable
-            style={[styles.bellButton, { backgroundColor: theme.surface }]}
-            onPress={() => router.push("/(tabs)/loans")}
+            style={[styles.headerBtn, { backgroundColor: theme.surface }]}
+            onPress={() => router.push("/(tabs)/history")}
           >
-            <MaterialCommunityIcons name="handshake" size={20} color={theme.text} />
+            <MaterialCommunityIcons name="wallet-outline" size={20} color={theme.text} />
           </Pressable>
         </View>
 
@@ -93,10 +93,10 @@ export default function HomeScreen() {
           </Text>
         </View>
         <Pressable
-          style={[styles.bellButton, { backgroundColor: theme.surface }]}
-          onPress={() => router.push("/(tabs)/loans")}
+          style={[styles.headerBtn, { backgroundColor: theme.surface }]}
+          onPress={() => router.push("/(tabs)/history")}
         >
-          <MaterialCommunityIcons name="handshake" size={20} color={theme.text} />
+          <MaterialCommunityIcons name="wallet-outline" size={20} color={theme.text} />
         </Pressable>
       </View>
 
@@ -173,16 +173,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  dayText: {
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  dateText: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginTop: 2,
-  },
-  bellButton: {
+  headerBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -193,6 +184,15 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOpacity: 1,
     elevation: 2,
+  },
+  dayText: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  dateText: {
+    fontSize: 18,
+    fontWeight: "800",
+    marginTop: 2,
   },
   balanceCard: {
     borderRadius: 20,
